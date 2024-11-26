@@ -66,5 +66,3 @@ model.train_model(train_df)
 
 result, model_outputs, wrong_preds = model.eval_model(train_df)
 print(result)
-#result1, model_outputs1, wrong_preds1 = model.eval_model(df)
-#print(result1)
