@@ -1,8 +1,8 @@
-!pip3 install spacy simpletransformers pandas
+!pip install simpletransformers
+!pip install pandas
 
 from simpletransformers.ner import NERModel, NERArgs
 import pandas as pd
-from spacy.tokens import DocBin
 import pickle
 
 
@@ -10,6 +10,10 @@ model_args = NERArgs()
 model_args.labels_list = ["-","O", "I-LEETSPEAK", "B-LEETSPEAK", "B-INV_CAMO", "I-INV_CAMO", "B-PUNCT_CAMO", "I-PUNCT_CAMO","B-MIX", "I-MIX"]
 model_args.overwrite_output_dir = True
 model_args.output_dir = "/content/salida/"
+model_args.train_batch_size = 32
+model_args.eval_batch_size = 32
+model_args.num_train_epochs = 4
+
 
 model = NERModel(
     "roberta",
@@ -36,7 +40,9 @@ def inspect_pickle_file(pickle_file):
 
 # Inspecciona el archivo
 pickle_file = "/content/NER_TRAIN_DATA_iob_format.pkl"
+pickle_file_test = "/content/NER_TEST_DATA_iob_format.pkl"
 data = inspect_pickle_file(pickle_file)
+data_test = inspect_pickle_file(pickle_file_test)
 
 
 def export_to_csv(data, output_csv):
@@ -53,16 +59,18 @@ def export_to_csv(data, output_csv):
 
 # Exporta a CSV
 output_csv = "/content/NER_TRAIN_DATA_iob_format.csv"
+output_csv_test = "/content/NER_TEST_DATA_iob_format.csv"
 export_to_csv(data, output_csv)
-
-
-
+export_to_csv(data_test, output_csv_test)
 
 train_df = pd.DataFrame(data)
+test_df = pd.DataFrame(data_test)
+test_df.columns = ["sentence_id", "words", "labels"]
 train_df.columns = ["sentence_id", "words", "labels"]
 
-
+# Entrena el modelo con los datos de entrenamiento
 model.train_model(train_df)
 
-result, model_outputs, wrong_preds = model.eval_model(train_df)
+# Evalúa el modelo con los datos de prueba
+result, model_outputs, wrong_preds = model.eval_model(test_df)
 print(result)
